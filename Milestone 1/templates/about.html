@@ -1,0 +1,539 @@
+```html
+{% extends "base.html" %}
+
+{% block title %}About Us | EventOps AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .about-page {
+        max-width: 1150px;
+        margin: 0 auto;
+        padding-bottom: 25px;
+        color: #1E293B;
+    }
+
+    /* Hero */
+    .about-hero {
+        background: linear-gradient(
+            110deg,
+            #2463EB 0%,
+            #7025F5 52%,
+            #C51DAD 100%
+        );
+        color: #FFFFFF;
+        padding: 55px 30px;
+        border-radius: 16px;
+        margin-bottom: 28px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .about-hero h1 {
+        color: #FFFFFF;
+        font-size: clamp(30px, 4vw, 44px);
+        font-weight: 800;
+        margin-bottom: 15px;
+    }
+
+    .about-hero h1 span {
+        color: #E0E7FF;
+    }
+
+    .about-hero p {
+        color: #F1F5F9;
+        max-width: 760px;
+        line-height: 1.8;
+        margin-bottom: 20px;
+    }
+
+    .about-tag {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.17);
+        color: #FFFFFF;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 30px;
+        padding: 7px 14px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 18px;
+    }
+
+    /* General sections */
+    .about-section {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 14px;
+        padding: 28px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 15px rgba(30, 41, 59, 0.04);
+    }
+
+    .about-section h2 {
+        color: #1E293B;
+        font-size: 25px;
+        font-weight: 750;
+        margin-bottom: 14px;
+    }
+
+    .about-section h2 i {
+        color: #7025F5;
+        margin-right: 8px;
+    }
+
+    .about-section > p {
+        color: #64748B;
+        line-height: 1.85;
+        margin-bottom: 0;
+    }
+
+    /* Feature cards */
+    .about-feature {
+        background: #F1F5F9;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 22px;
+        height: 100%;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .about-feature:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 22px rgba(112, 37, 245, 0.10);
+    }
+
+    .about-feature-icon {
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 11px;
+        background: #EDE9FE;
+        color: #7025F5;
+        font-size: 22px;
+        margin-bottom: 16px;
+    }
+
+    .about-feature h3 {
+        color: #1E293B;
+        font-size: 17px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .about-feature p {
+        color: #64748B;
+        font-size: 14px;
+        line-height: 1.75;
+        margin-bottom: 0;
+    }
+
+    /* Workflow */
+    .about-workflow {
+        background: #F8FAFC;
+        border-radius: 12px;
+        border: 1px solid #E2E8F0;
+        padding: 22px;
+        height: 100%;
+    }
+
+    .about-workflow-number {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #2463EB, #7025F5);
+        color: #FFFFFF;
+        border-radius: 10px;
+        font-weight: 700;
+        margin-bottom: 13px;
+    }
+
+    .about-workflow h3 {
+        color: #1E293B;
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .about-workflow p {
+        color: #64748B;
+        font-size: 14px;
+        line-height: 1.7;
+        margin-bottom: 0;
+    }
+
+    /* Vision */
+    .about-vision {
+        background: #EEF2FF;
+        border-left: 5px solid #7025F5;
+        border-radius: 12px;
+        padding: 25px;
+    }
+
+    .about-vision h2 {
+        color: #1E293B;
+        font-size: 24px;
+        font-weight: 750;
+        margin-bottom: 12px;
+    }
+
+    .about-vision p {
+        color: #475569;
+        line-height: 1.8;
+        margin-bottom: 0;
+    }
+
+    /* CTA */
+    .about-cta {
+        background: linear-gradient(
+            110deg,
+            #2463EB 0%,
+            #7025F5 52%,
+            #C51DAD 100%
+        );
+        color: #FFFFFF;
+        text-align: center;
+        padding: 38px 22px;
+        border-radius: 15px;
+        margin-top: 25px;
+    }
+
+    .about-cta h2 {
+        color: #FFFFFF;
+        font-size: 27px;
+        font-weight: 800;
+        margin-bottom: 12px;
+    }
+
+    .about-cta p {
+        color: #F1F5F9;
+        line-height: 1.8;
+        max-width: 650px;
+        margin: 0 auto 20px;
+    }
+
+    .about-cta .btn {
+        background: #FFFFFF;
+        color: #7025F5;
+        border: none;
+        border-radius: 8px;
+        padding: 11px 22px;
+        font-weight: 700;
+    }
+
+    .about-cta .btn:hover {
+        background: #F1F5F9;
+        color: #2463EB;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .about-hero {
+            padding: 38px 22px;
+        }
+
+        .about-section {
+            padding: 21px;
+        }
+
+        .about-section h2 {
+            font-size: 22px;
+        }
+
+        .about-cta h2 {
+            font-size: 23px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="about-page">
+
+    <!-- Hero Section -->
+    <section class="about-hero">
+        <span class="about-tag">
+            <i class="bi bi-robot me-1"></i>
+            Agentic AI Platform
+        </span>
+
+        <h1>
+            About <span>EventOps AI</span>
+        </h1>
+
+        <p>
+            Autonomous Event Management Intelligence. EventOps AI brings
+            event planning, attendee management, venue operations, speaker
+            coordination, sponsorship tracking, and incident handling
+            together in one intelligent platform.
+        </p>
+
+        <a href="{{ url_for('index') }}"
+           class="btn btn-light fw-bold px-4 py-2">
+            <i class="bi bi-house me-1"></i>
+            Explore Platform
+        </a>
+    </section>
+
+    <!-- Who We Are -->
+    <section class="about-section">
+        <h2>
+            <i class="bi bi-info-circle"></i>
+            Who We Are
+        </h2>
+
+        <p>
+            EventOps AI is a smart event management platform designed to
+            simplify event operations through centralized management tools
+            and AI-assisted capabilities. It helps bring important event
+            information and operational activities into one place, making
+            them easier to organize, access, and manage.
+        </p>
+    </section>
+
+    <!-- Mission -->
+    <section class="about-section">
+        <h2>
+            <i class="bi bi-bullseye"></i>
+            Our Mission
+        </h2>
+
+        <p>
+            Our mission is to make event management more efficient,
+            organized, and intelligent. We aim to help event organizers
+            coordinate registrations, venues, speakers, sponsorships,
+            notifications, and operational issues through a connected
+            digital platform.
+        </p>
+    </section>
+
+    <!-- Features -->
+    <section class="about-section">
+        <h2>
+            <i class="bi bi-grid"></i>
+            What Our Platform Offers
+        </h2>
+
+        <p class="mb-4">
+            Explore the core capabilities designed to support event
+            management and day-to-day operations.
+        </p>
+
+        <div class="row g-3">
+
+            <div class="col-md-4">
+                <div class="about-feature">
+                    <div class="about-feature-icon">
+                        <i class="bi bi-calendar-event"></i>
+                    </div>
+                    <h3>Event Management</h3>
+                    <p>
+                        Organize event information and manage event
+                        activities from a centralized platform.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="about-feature">
+                    <div class="about-feature-icon">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <h3>AI Assistant</h3>
+                    <p>
+                        Use Gemini-powered AI assistance for supported
+                        event-related questions and tasks.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="about-feature">
+                    <div class="about-feature-icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <h3>Attendee Registrations</h3>
+                    <p>
+                        Manage attendee registration information and
+                        help keep participation records organized.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="about-feature">
+                    <div class="about-feature-icon">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <h3>Venue Management</h3>
+                    <p>
+                        Maintain venue information to support event
+                        planning and coordination.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="about-feature">
+                    <div class="about-feature-icon">
+                        <i class="bi bi-mic"></i>
+                    </div>
+                    <h3>Speaker Coordination</h3>
+                    <p>
+                        Keep speaker details organized for easier
+                        event preparation and management.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="about-feature">
+                    <div class="about-feature-icon">
+                        <i class="bi bi-trophy"></i>
+                    </div>
+                    <h3>Sponsorship Tracking</h3>
+                    <p>
+                        Organize sponsorship information and keep
+                        relevant records accessible.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="about-feature">
+                    <div class="about-feature-icon">
+                        <i class="bi bi-shield-exclamation"></i>
+                    </div>
+                    <h3>Incident Management</h3>
+                    <p>
+                        Record and review operational incidents
+                        associated with event activities.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="about-feature">
+                    <div class="about-feature-icon">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <h3>Operational Intelligence</h3>
+                    <p>
+                        Access available event information and insights
+                        to support operational decision-making.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="about-feature">
+                    <div class="about-feature-icon">
+                        <i class="bi bi-bell"></i>
+                    </div>
+                    <h3>Notifications and Feedback</h3>
+                    <p>
+                        Support reminders, notifications, and feedback
+                        collection within the platform.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Agentic AI Workflow -->
+    <section class="about-section">
+        <h2>
+            <i class="bi bi-diagram-3"></i>
+            Our Approach to Agentic AI
+        </h2>
+
+        <p class="mb-4">
+            EventOps AI is designed to combine event data, AI-assisted
+            capabilities, and structured workflows to support event teams.
+        </p>
+
+        <div class="row g-3">
+
+            <div class="col-md-3 col-sm-6">
+                <div class="about-workflow">
+                    <div class="about-workflow-number">01</div>
+                    <h3>Collect</h3>
+                    <p>
+                        Gather relevant event information and
+                        operational records.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-6">
+                <div class="about-workflow">
+                    <div class="about-workflow-number">02</div>
+                    <h3>Analyze</h3>
+                    <p>
+                        Use available information to understand
+                        event-related requirements.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-6">
+                <div class="about-workflow">
+                    <div class="about-workflow-number">03</div>
+                    <h3>Assist</h3>
+                    <p>
+                        Provide AI-assisted support for relevant
+                        tasks and decisions.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-6">
+                <div class="about-workflow">
+                    <div class="about-workflow-number">04</div>
+                    <h3>Improve</h3>
+                    <p>
+                        Review operational information and feedback
+                        to identify opportunities for improvement.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Vision -->
+    <section class="about-vision">
+        <h2>
+            <i class="bi bi-eye me-2"></i>
+            Our Vision
+        </h2>
+
+        <p>
+            We envision a future where intelligent technology helps
+            event teams reduce repetitive work, improve coordination,
+            respond to operational challenges, and create better
+            experiences for attendees.
+        </p>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="about-cta">
+        <h2>Let's Make Events Smarter</h2>
+
+        <p>
+            Explore EventOps AI and discover a more connected approach
+            to event management and operational coordination.
+        </p>
+
+        <a href="{{ url_for('index') }}" class="btn">
+            <i class="bi bi-house-door me-1"></i>
+            Back to Home
+        </a>
+    </section>
+
+</div>
+{% endblock %}
+```
