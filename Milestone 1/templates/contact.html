@@ -1,0 +1,398 @@
+```html
+{% extends "base.html" %}
+
+{% block title %}Contact Us | EventOps AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .contact-page {
+        max-width: 1150px;
+        margin: 0 auto;
+        padding-bottom: 25px;
+        color: #1E293B;
+    }
+
+    /* Header */
+    .contact-hero {
+        background: linear-gradient(
+            110deg,
+            #2463EB 0%,
+            #7025F5 52%,
+            #C51DAD 100%
+        );
+        padding: 45px 25px;
+        border-radius: 16px;
+        text-align: center;
+        color: #FFFFFF;
+        margin-bottom: 30px;
+    }
+
+    .contact-hero h1 {
+        color: #FFFFFF;
+        font-weight: 800;
+        font-size: clamp(30px, 4vw, 42px);
+        margin-bottom: 12px;
+    }
+
+    .contact-hero p {
+        color: #F1F5F9;
+        max-width: 680px;
+        margin: 0 auto;
+        line-height: 1.8;
+    }
+
+    /* Contact cards */
+    .contact-card {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 14px;
+        padding: 25px;
+        height: 100%;
+        box-shadow: 0 4px 15px rgba(30, 41, 59, 0.04);
+    }
+
+    .contact-card h2 {
+        font-size: 23px;
+        font-weight: 750;
+        color: #1E293B;
+        margin-bottom: 20px;
+    }
+
+    .contact-info-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 16px 0;
+        border-bottom: 1px solid #E2E8F0;
+    }
+
+    .contact-info-item:last-child {
+        border-bottom: none;
+    }
+
+    .contact-icon {
+        width: 43px;
+        height: 43px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #EDE9FE;
+        color: #7025F5;
+        border-radius: 11px;
+        font-size: 20px;
+    }
+
+    .contact-info-item h3 {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 5px;
+        color: #1E293B;
+    }
+
+    .contact-info-item p {
+        color: #64748B;
+        font-size: 14px;
+        line-height: 1.7;
+        margin-bottom: 0;
+        overflow-wrap: anywhere;
+    }
+
+    /* Form */
+    .contact-form label {
+        font-weight: 600;
+        font-size: 14px;
+        color: #334155;
+        margin-bottom: 7px;
+    }
+
+    .contact-form .form-control,
+    .contact-form .form-select {
+        border: 1px solid #CBD5E1;
+        border-radius: 8px;
+        padding: 11px 13px;
+        color: #1E293B;
+    }
+
+    .contact-form .form-control:focus,
+    .contact-form .form-select:focus {
+        border-color: #7025F5;
+        box-shadow: 0 0 0 3px rgba(112, 37, 245, 0.12);
+    }
+
+    .contact-submit {
+        width: 100%;
+        background: linear-gradient(
+            110deg,
+            #2463EB,
+            #7025F5,
+            #C51DAD
+        );
+        color: #FFFFFF;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 18px;
+        font-weight: 700;
+        transition: opacity 0.2s ease;
+    }
+
+    .contact-submit:hover {
+        color: #FFFFFF;
+        opacity: 0.9;
+    }
+
+    .contact-note {
+        background: #F1F5F9;
+        border-left: 4px solid #7025F5;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 22px;
+        color: #64748B;
+        font-size: 13px;
+        line-height: 1.7;
+    }
+
+    /* Bottom section */
+    .contact-bottom {
+        margin-top: 28px;
+        background: #EEF2FF;
+        border-radius: 14px;
+        padding: 28px 20px;
+        text-align: center;
+    }
+
+    .contact-bottom h2 {
+        color: #1E293B;
+        font-weight: 750;
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+
+    .contact-bottom p {
+        color: #64748B;
+        margin-bottom: 0;
+        line-height: 1.8;
+    }
+
+    @media (max-width: 768px) {
+        .contact-hero {
+            padding: 35px 20px;
+        }
+
+        .contact-card {
+            padding: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="contact-page">
+
+    <!-- Page Header -->
+    <section class="contact-hero">
+        <h1>
+            <i class="bi bi-envelope-paper me-2"></i>
+            Contact Us
+        </h1>
+
+        <p>
+            Have a question about EventOps AI? We would love to hear from you.
+            Send us your message and let us know how we can help.
+        </p>
+    </section>
+
+    <div class="row g-4">
+
+        <!-- Contact Information -->
+        <div class="col-lg-5">
+            <section class="contact-card">
+                <h2>
+                    <i class="bi bi-chat-dots me-2"
+                       style="color: #7025F5;"></i>
+                    Get in Touch
+                </h2>
+
+                <div class="contact-info-item">
+                    <div class="contact-icon">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <div>
+                        <h3>EventOps AI</h3>
+                        <p>
+                            Autonomous Event Management Intelligence Platform
+                        </p>
+                    </div>
+                </div>
+
+                <div class="contact-info-item">
+                    <div class="contact-icon">
+                        <i class="bi bi-calendar-event"></i>
+                    </div>
+                    <div>
+                        <h3>Event Management Support</h3>
+                        <p>
+                            Questions about events, registrations,
+                            venues, speakers, or platform features.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="contact-info-item">
+                    <div class="contact-icon">
+                        <i class="bi bi-cpu"></i>
+                    </div>
+                    <div>
+                        <h3>Technical Support</h3>
+                        <p>
+                            Need help with the AI assistant or
+                            another platform feature? Describe
+                            the issue in the contact form.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="contact-info-item">
+                    <div class="contact-icon">
+                        <i class="bi bi-clock"></i>
+                    </div>
+                    <div>
+                        <h3>Our Goal</h3>
+                        <p>
+                            We aim to make event management
+                            simpler, smarter, and more organized.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="contact-note">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Please include enough detail in your message
+                    so the team can understand your request.
+                </div>
+            </section>
+        </div>
+
+        <!-- Contact Form -->
+        <div class="col-lg-7">
+            <section class="contact-card">
+                <h2>
+                    <i class="bi bi-send me-2"
+                       style="color: #7025F5;"></i>
+                    Send Us a Message
+                </h2>
+
+                <form method="POST"
+                      action="{{ url_for('contact') }}"
+                      class="contact-form">
+
+                    <div class="mb-3">
+                        <label for="name" class="form-label">
+                            Full Name
+                        </label>
+
+                        <input type="text"
+                               class="form-control"
+                               id="name"
+                               name="name"
+                               placeholder="Enter your full name"
+                               value="{{ request.form.get('name', current_user.name if current_user.is_authenticated else '') }}"
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">
+                            Email Address
+                        </label>
+
+                        <input type="email"
+                               class="form-control"
+                               id="email"
+                               name="email"
+                               placeholder="Enter your email address"
+                               value="{{ request.form.get('email', current_user.email if current_user.is_authenticated else '') }}"
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">
+                            Subject
+                        </label>
+
+                        <select class="form-select"
+                                id="subject"
+                                name="subject"
+                                required>
+                            <option value="" disabled
+                                {% if not request.form.get('subject') %}selected{% endif %}>
+                                Select a subject
+                            </option>
+
+                            <option value="General Inquiry"
+                                {% if request.form.get('subject') == 'General Inquiry' %}selected{% endif %}>
+                                General Inquiry
+                            </option>
+
+                            <option value="Event Management"
+                                {% if request.form.get('subject') == 'Event Management' %}selected{% endif %}>
+                                Event Management
+                            </option>
+
+                            <option value="Technical Support"
+                                {% if request.form.get('subject') == 'Technical Support' %}selected{% endif %}>
+                                Technical Support
+                            </option>
+
+                            <option value="AI Assistant"
+                                {% if request.form.get('subject') == 'AI Assistant' %}selected{% endif %}>
+                                AI Assistant
+                            </option>
+
+                            <option value="Feedback"
+                                {% if request.form.get('subject') == 'Feedback' %}selected{% endif %}>
+                                Feedback
+                            </option>
+
+                            <option value="Other"
+                                {% if request.form.get('subject') == 'Other' %}selected{% endif %}>
+                                Other
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="message" class="form-label">
+                            Your Message
+                        </label>
+
+                        <textarea class="form-control"
+                                  id="message"
+                                  name="message"
+                                  rows="5"
+                                  placeholder="Write your message here..."
+                                  required>{{ request.form.get('message', '') }}</textarea>
+                    </div>
+
+                    <button type="submit" class="contact-submit">
+                        <i class="bi bi-send me-2"></i>
+                        Send Message
+                    </button>
+
+                </form>
+            </section>
+        </div>
+
+    </div>
+
+    <!-- Bottom Section -->
+    <section class="contact-bottom">
+        <h2>Let's Make Events Smarter</h2>
+        <p>
+            EventOps AI brings event management and AI-assisted operations
+            together to help create a more organized experience.
+        </p>
+    </section>
+
+</div>
+{% endblock %}
+```
