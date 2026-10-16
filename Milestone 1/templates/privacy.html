@@ -1,0 +1,202 @@
+```html
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy | EventOps AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .privacy-page {
+        max-width: 1000px;
+        margin: auto;
+        color: #1E293B;
+    }
+
+    .privacy-header {
+        background: linear-gradient(
+            110deg,
+            #2463EB,
+            #7025F5,
+            #C51DAD
+        );
+        color: white;
+        text-align: center;
+        padding: 40px 20px;
+        border-radius: 14px;
+        margin-bottom: 25px;
+    }
+
+    .privacy-header h1 {
+        color: white;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+
+    .privacy-header p {
+        color: #F1F5F9;
+        margin: 0;
+    }
+
+    .privacy-card {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 20px;
+    }
+
+    .privacy-card h2 {
+        color: #7025F5;
+        font-size: 21px;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .privacy-card p,
+    .privacy-card li {
+        color: #64748B;
+        line-height: 1.8;
+    }
+
+    .privacy-card ul {
+        padding-left: 22px;
+        margin-bottom: 0;
+    }
+
+    .privacy-note {
+        background: #EEF2FF;
+        border-left: 4px solid #7025F5;
+        padding: 15px;
+        border-radius: 8px;
+        color: #475569;
+        line-height: 1.7;
+    }
+
+    @media (max-width: 768px) {
+        .privacy-header {
+            padding: 30px 15px;
+        }
+
+        .privacy-card {
+            padding: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="privacy-page">
+
+    <section class="privacy-header">
+        <h1>
+            <i class="bi bi-shield-lock me-2"></i>
+            Privacy Policy
+        </h1>
+        <p>
+            Your privacy matters to us at EventOps AI.
+        </p>
+    </section>
+
+    <section class="privacy-card">
+        <h2>1. Introduction</h2>
+        <p>
+            Welcome to EventOps AI, an AI-assisted event management platform.
+            This Privacy Policy explains how information may be collected,
+            used, and protected when you use our platform.
+        </p>
+    </section>
+
+    <section class="privacy-card">
+        <h2>2. Information We Collect</h2>
+        <p>Depending on how you use the platform, information may include:</p>
+        <ul>
+            <li>Name and email address provided during registration.</li>
+            <li>Event registration and participation details.</li>
+            <li>Messages, feedback, and support requests you submit.</li>
+            <li>Information necessary to maintain account security and platform operation.</li>
+        </ul>
+    </section>
+
+    <section class="privacy-card">
+        <h2>3. How We Use Information</h2>
+        <p>Information may be used to:</p>
+        <ul>
+            <li>Create and manage user accounts.</li>
+            <li>Support event registration and management.</li>
+            <li>Respond to questions and feedback.</li>
+            <li>Provide available AI-assisted features.</li>
+            <li>Maintain platform security and improve functionality.</li>
+        </ul>
+    </section>
+
+    <section class="privacy-card">
+        <h2>4. AI Services</h2>
+        <p>
+            EventOps AI may use Google's Gemini AI service for supported
+            assistant features. Information submitted to these features
+            may be processed by the relevant service to generate responses.
+            Avoid submitting passwords, payment details, or other sensitive
+            personal information to the AI assistant.
+        </p>
+    </section>
+
+    <section class="privacy-card">
+        <h2>5. Data Security</h2>
+        <p>
+            We aim to protect information using appropriate security
+            practices. However, no website or electronic storage system
+            can guarantee absolute security.
+        </p>
+    </section>
+
+    <section class="privacy-card">
+        <h2>6. Data Sharing</h2>
+        <p>
+            Information may be processed by service providers required
+            to operate the platform, where applicable. Information should
+            not be shared beyond what is necessary for legitimate platform
+            operations or what is otherwise permitted or required by law.
+        </p>
+    </section>
+
+    <section class="privacy-card">
+        <h2>7. Your Choices</h2>
+        <p>
+            You should provide accurate information and avoid sharing
+            unnecessary personal details. For requests to access, correct,
+            or delete your information, contact the platform administrator.
+            Such requests may be subject to applicable legal requirements.
+        </p>
+    </section>
+
+    <section class="privacy-card">
+        <h2>8. Policy Updates</h2>
+        <p>
+            This Privacy Policy may be updated as the platform develops.
+            Changes will be reflected on this page.
+        </p>
+    </section>
+
+    <section class="privacy-card">
+        <h2>9. Contact Us</h2>
+        <p>
+            If you have questions about this Privacy Policy, please contact
+            us through the Contact Us page.
+        </p>
+        <a href="{{ url_for('contact') }}"
+           class="btn btn-primary"
+           style="background: linear-gradient(110deg, #2463EB, #7025F5, #C51DAD); border: none;">
+            <i class="bi bi-envelope me-1"></i>
+            Contact Us
+        </a>
+    </section>
+
+    <div class="privacy-note mb-4">
+        <i class="bi bi-info-circle me-2"></i>
+        <strong>Note:</strong> This is a starter policy template. Before
+        publishing, ensure it accurately reflects your actual database,
+        AI integrations, hosting, data retention, and privacy practices.
+    </div>
+
+</div>
+{% endblock %}
+```
