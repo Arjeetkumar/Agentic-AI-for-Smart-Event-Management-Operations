@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Register for {{ event.title }} — EventOps AI{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Register for {{ event.title }}</h1><p class="mb-0">Choose your ticket type.</p></div>
+<div class="card p-4 col-lg-7"><form method="post"><label class="form-label" for="ticket_type">Ticket type</label><select class="form-select mb-3" id="ticket_type" name="ticket_type"><option>Standard</option><option>VIP</option></select><button class="btn btn-primary">Complete registration</button> <a class="btn btn-outline-secondary" href="{{ url_for('event_detail', event_id=event.id) }}">Cancel</a></form></div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Share feedback — EventOps AI{% endblock %}
+
+{% block content %}
+<div class="feedback-shell">
+    <div class="page-header feedback-header">
+        <div>
+            <span class="eyebrow"><i class="bi bi-chat-heart"></i> Event experience</span>
+            <h1 class="mb-2">{{ 'Update your feedback' if existing else 'Share your feedback' }}</h1>
+            <p class="mb-0 opacity-75">Help us make future events even better.</p>
+        </div>
+        <div class="feedback-header-icon" aria-hidden="true">
+            <i class="bi bi-stars"></i>
+        </div>
+    </div>
+
+    <div class="row g-4 align-items-start">
+        <div class="col-lg-7">
+            <div class="card feedback-card">
+                <div class="feedback-event-summary">
+                    <div class="feedback-event-icon" aria-hidden="true">
+                        <i class="bi bi-calendar-event"></i>
+                    </div>
+                    <div>
+                        <span class="text-uppercase small fw-semibold text-muted">Your review for</span>
+                        <h2 class="h4 mb-1">{{ event.title }}</h2>
+                        <p class="text-muted mb-0">
+                            <i class="bi bi-calendar3 me-1"></i>{{ event.date or 'Date TBD' }}
+                            <span class="mx-1">·</span>
+                            <i class="bi bi-geo-alt me-1"></i>{{ event.location or 'Location TBD' }}
+                        </p>
+                    </div>
+                </div>
+
+                <form method="post" class="feedback-form">
+                    <fieldset class="mb-4">
+                        <legend class="form-label fw-semibold mb-1">How would you rate this event?</legend>
+                        <p class="form-text mt-0 mb-3">Choose one to let us know how it went.</p>
+                        <div class="rating-picker" role="radiogroup" aria-label="Event rating">
+                            {% for n in range(5, 0, -1) %}
+                            <input
+                                type="radio"
+                                id="rating-{{ n }}"
+                                name="rating"
+                                value="{{ n }}"
+                                {% if (request.form.get('rating', existing.rating if existing else 0)|int) == n %}checked{% endif %}
+                                required>
+                            <label for="rating-{{ n }}" title="{{ n }} out of 5">
+                                <i class="bi bi-star-fill" aria-hidden="true"></i>
+                                <span class="visually-hidden">{{ n }} out of 5</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        <div class="rating-hint" aria-hidden="true">
+                            <span>Not great</span><span>Excellent</span>
+                        </div>
+                    </fieldset>
+
+                    <div class="mb-4">
+                        <label for="comment" class="form-label fw-semibold">Tell us more <span class="text-muted fw-normal">(optional)</span></label>
+                        <textarea
+                            id="comment"
+                            name="comment"
+                            class="form-control feedback-textarea"
+                            rows="5"
+                            maxlength="1000"
+                            placeholder="What did you enjoy? What could we improve?">{{ request.form.get('comment', existing.comment if existing else '') }}</textarea>
+                        <div class="form-text">Your honest feedback helps organizers improve the experience for everyone.</div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <button class="btn btn-primary px-4" type="submit">
+                            <i class="bi bi-send me-2"></i>{{ 'Update feedback' if existing else 'Submit feedback' }}
+                        </button>
+                        <a class="btn btn-outline-secondary" href="{{ url_for('event_detail', event_id=event.id) }}">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="feedback-side-panel">
+                <div class="feedback-side-icon"><i class="bi bi-lightbulb"></i></div>
+                <h2 class="h5">A few words go a long way</h2>
+                <p class="text-muted mb-3">Your feedback helps the team understand what worked and where to focus next.</p>
+                <ul class="feedback-tips">
+                    <li><i class="bi bi-check2-circle"></i><span>Share a specific moment you enjoyed.</span></li>
+                    <li><i class="bi bi-check2-circle"></i><span>Mention anything that could be smoother.</span></li>
+                    <li><i class="bi bi-check2-circle"></i><span>Keep it constructive and respectful.</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

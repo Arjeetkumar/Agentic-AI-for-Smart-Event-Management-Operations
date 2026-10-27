@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}{{ event.title }} — EventOps AI{% endblock %}
+{% block content %}
+<div class="page-header"><h1>{{ event.title }}</h1><p class="mb-0">{{ event.description or 'Event details' }}</p></div>
+<div class="card p-4"><div class="row g-3 align-items-center"><div class="col-md-8"><h4>Event information</h4><p><strong>Date:</strong> {{ event.date or 'TBD' }}<br><strong>Time:</strong> {{ event.time or 'TBD' }}<br><strong>Location:</strong> {{ event.location or 'TBD' }}<br><strong>Capacity:</strong> {{ event.capacity or 'Unlimited' }}</p></div><div class="col-md-4 text-md-end">{% if registered %}<div class="d-flex flex-wrap justify-content-md-end gap-2"><span class="badge text-bg-success fs-6 align-self-center">You are registered</span><a class="btn btn-outline-primary" href="{{ url_for('feedback', event_id=event.id) }}"><i class="bi bi-star me-1"></i>{{ 'Update feedback' if existing_feedback else 'Give feedback' }}</a></div>{% elif event.status == 'upcoming' %}<a class="btn btn-primary" href="{{ url_for('register_for_event', event_id=event.id) }}">Register now</a>{% else %}<span class="badge text-bg-secondary">{{ event.status|capitalize }}</span>{% endif %}</div></div></div>
+{% endblock %}
