@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+
+{% block title %}AI Agenda & Schedule Studio — EventOps AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .studio-hero {
+        background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+        color: white;
+        padding: 3rem 0 4rem;
+        border-radius: 0 0 2.5rem 2.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .studio-hero::after {
+        content: '';
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, transparent 70%);
+        top: -50px;
+        right: -50px;
+        border-radius: 50%;
+    }
+
+    .studio-card {
+        background: white;
+        border-radius: 1.5rem;
+        border: none;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        padding: 2rem;
+        margin-top: -2rem;
+    }
+
+    .timeline-session {
+        position: relative;
+        padding-left: 2rem;
+        padding-bottom: 2rem;
+        border-left: 2px solid #e2e8f0;
+    }
+
+    .timeline-session:last-child {
+        border-left: 2px solid transparent;
+        padding-bottom: 0;
+    }
+
+    .timeline-dot {
+        position: absolute;
+        left: -9px;
+        top: 0;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #4f46e5;
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px #4f46e5;
+    }
+
+    .session-badge {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        border-radius: 50px;
+        padding: 0.3rem 0.8rem;
+    }
+
+    .session-badge.Keynote { background: #ede9fe; color: #6d28d9; }
+    .session-badge.Workshop { background: #ecfdf5; color: #059669; }
+    .session-badge.Panel { background: #eff6ff; color: #2563eb; }
+    .session-badge.Break { background: #fef3c7; color: #d97706; }
+
+    .ai-generating-pulse {
+        display: none;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 0.6; }
+        50% { opacity: 1; }
+        100% { opacity: 0.6; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="studio-hero">
+    <div class="container position-relative" style="z-index: 2;">
+        <span class="badge bg-white text-primary px-3 py-2 rounded-pill fw-bold mb-3 shadow-sm">
+            <i class="bi bi-magic me-1"></i> Gemini 2.5/3.5 Neural Planning
+        </span>
+        <h1 class="display-6 fw-bold mb-2">AI Event Agenda & Program Studio</h1>
+        <p class="text-white-50 fs-5 mb-0" style="max-width: 650px;">
+            Input your conference theme, duration, and audience. Gemini will design a comprehensive multi-track program schedule in seconds.
+        </p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="row g-4">
+        <!-- Configuration Column -->
+        <div class="col-lg-4">
+            <div class="studio-card">
+                <h4 class="fw-bold mb-3 d-flex align-items-center">
+                    <i class="bi bi-sliders me-2 text-primary"></i> Program Parameters
+                </h4>
+
+                <form id="agendaForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Conference Topic / Theme</label>
+                        <input type="text" id="topicInput" class="form-control form-control-lg"
+                               placeholder="e.g. Next-Gen Cloud & AI Summit"
+                               value="Generative AI & Autonomous Agent Systems 2026" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Duration</label>
+                        <select id="durationSelect" class="form-select">
+                            <option value="Full Day (9:00 AM - 5:00 PM)">Full Day (9:00 AM - 5:00 PM)</option>
+                            <option value="Half Day Intensive (9:00 AM - 1:00 PM)">Half Day Intensive (9:00 AM - 1:00 PM)</option>
+                            <option value="2-Day Flagship Conference">2-Day Flagship Conference</option>
+                            <option value="Evening Workshop (6:00 PM - 9:30 PM)">Evening Workshop (6:00 PM - 9:30 PM)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Number of Tracks</label>
+                        <select id="tracksSelect" class="form-select">
+                            <option value="1">1 Track (Plenary / Main Stage)</option>
+                            <option value="2" selected>2 Parallel Tracks (Technical + Strategy)</option>
+                            <option value="3">3 Tracks (Keynote, Hands-on Labs, Founder)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold small">Target Audience</label>
+                        <input type="text" id="audienceInput" class="form-control"
+                               placeholder="e.g. AI Researchers, Senior Engineers, CTOs"
+                               value="Software Architects, AI Engineers, and Tech Leaders">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm fw-bold d-flex align-items-center justify-content-center" id="submitBtn">
+                        <i class="bi bi-sparkles me-2"></i> Generate AI Agenda
+                    </button>
+                </form>
+
+                <div class="mt-4 p-3 bg-light rounded-3 text-secondary small">
+                    <i class="bi bi-info-circle me-1 text-primary"></i>
+                    AI automatically creates keynotes, technical deep dives, networking mixers, and recommended speaker credentials.
+                </div>
+            </div>
+        </div>
+
+        <!-- Generated Schedule Display Column -->
+        <div class="col-lg-8">
+            <div class="studio-card" id="outputCard">
+                <!-- Generating State -->
+                <div class="text-center py-5 ai-generating-pulse" id="loadingState">
+                    <div class="spinner-grow text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+                    <h4 class="fw-bold">Synthesizing Conference Schedule...</h4>
+                    <p class="text-muted">Gemini is structuring tracks, optimizing breaks, and tailoring abstracts.</p>
+                </div>
+
+                <!-- Initial Placeholder -->
+                <div class="text-center py-5 text-muted" id="emptyState">
+                    <i class="bi bi-calendar-range display-3 d-block text-primary mb-3 opacity-50"></i>
+                    <h4 class="fw-bold text-dark">Ready to architect your conference</h4>
+                    <p class="mx-auto" style="max-width: 450px;">Click "Generate AI Agenda" on the left to produce a publication-ready schedule.</p>
+                </div>
+
+                <!-- Results Display -->
+                <div id="resultsContent" style="display: none;">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom gap-2">
+                        <div>
+                            <span class="badge bg-success-subtle text-success fw-bold px-3 py-1 rounded-pill mb-1">
+                                <i class="bi bi-check2-circle me-1"></i> Generated Successfully
+                            </span>
+                            <h2 class="fw-bold mb-0 text-dark" id="displayTitle">AI Summit</h2>
+                            <p class="text-muted mb-0" id="displayTagline">Innovating the future</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="copyScheduleMarkdown()">
+                                <i class="bi bi-clipboard me-1"></i> Copy Markdown
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="window.print()">
+                                <i class="bi bi-printer me-1"></i> Print Schedule
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Executive Overview -->
+                    <div class="alert alert-primary bg-primary-subtle border-0 mb-4" id="displayOverview">
+                        Conference overview details.
+                    </div>
+
+                    <!-- Key Highlights -->
+                    <div class="mb-4">
+                        <h6 class="text-uppercase fw-bold text-muted small mb-2">Program Highlights</h6>
+                        <div class="d-flex flex-wrap gap-2" id="highlightsContainer"></div>
+                    </div>
+
+                    <!-- Schedule Timeline -->
+                    <h5 class="fw-bold mb-3"><i class="bi bi-clock-history me-2 text-primary"></i> Detailed Timeline</h5>
+                    <div id="timelineContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentAgendaData = null;
+
+    document.getElementById('agendaForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const topic = document.getElementById('topicInput').value.trim();
+        const duration = document.getElementById('durationSelect').value;
+        const tracks = parseInt(document.getElementById('tracksSelect').value);
+        const audience = document.getElementById('audienceInput').value.trim();
+
+        const emptyState = document.getElementById('emptyState');
+        const loadingState = document.getElementById('loadingState');
+        const resultsContent = document.getElementById('resultsContent');
+        const submitBtn = document.getElementById('submitBtn');
+
+        emptyState.style.display = 'none';
+        resultsContent.style.display = 'none';
+        loadingState.style.display = 'block';
+        submitBtn.disabled = true;
+
+        try {
+            const res = await fetch('/api/ai/generate-agenda', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    topic: topic,
+                    duration: duration,
+                    tracks: tracks,
+                    target_audience: audience
+                })
+            });
+
+            const data = await res.json();
+            loadingState.style.display = 'none';
+            submitBtn.disabled = false;
+
+            if (data.success && data.agenda) {
+                currentAgendaData = data.agenda;
+                renderAgenda(data.agenda);
+                resultsContent.style.display = 'block';
+            } else {
+                alert('⚠️ ' + (data.error || 'Failed to generate agenda.'));
+                emptyState.style.display = 'block';
+            }
+        } catch (err) {
+            loadingState.style.display = 'none';
+            submitBtn.disabled = false;
+            emptyState.style.display = 'block';
+            alert('⚠️ Network connection error while communicating with AI service.');
+        }
+    });
+
+    function renderAgenda(agenda) {
+        document.getElementById('displayTitle').textContent = agenda.title || 'Conference Program';
+        document.getElementById('displayTagline').textContent = agenda.tagline || '';
+        document.getElementById('displayOverview').textContent = agenda.overview || 'Comprehensive conference agenda tailored for your attendees.';
+
+        // Highlights
+        const hlContainer = document.getElementById('highlightsContainer');
+        hlContainer.innerHTML = '';
+        (agenda.highlights || []).forEach(hl => {
+            const span = document.createElement('span');
+            span.className = 'badge bg-light text-dark border px-3 py-2 rounded-pill';
+            span.innerHTML = `<i class="bi bi-star-fill text-warning me-1"></i> ${hl}`;
+            hlContainer.appendChild(span);
+        });
+
+        // Timeline
+        const tlContainer = document.getElementById('timelineContainer');
+        tlContainer.innerHTML = '';
+
+        (agenda.schedule || []).forEach(session => {
+            const item = document.createElement('div');
+            item.className = 'timeline-session';
+            const badgeType = (session.type || 'Session').replace(/\s+/g, '');
+
+            item.innerHTML = `
+                <div class="timeline-dot"></div>
+                <div class="d-flex flex-wrap align-items-center justify-content-between mb-1 gap-2">
+                    <span class="fw-bold text-primary font-monospace">${session.time || 'TBD'}</span>
+                    <div>
+                        <span class="badge bg-secondary-subtle text-secondary me-1">${session.track || 'All'}</span>
+                        <span class="session-badge ${badgeType}">${session.type || 'Session'}</span>
+                    </div>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">${session.title}</h5>
+                <p class="text-secondary small mb-1">${session.description || ''}</p>
+                <div class="small text-muted"><i class="bi bi-person-badge me-1"></i> <strong>Speaker:</strong> ${session.speaker || 'TBD'}</div>
+            `;
+            tlContainer.appendChild(item);
+        });
+    }
+
+    function copyScheduleMarkdown() {
+        if (!currentAgendaData) return;
+        let md = `# ${currentAgendaData.title}\n*${currentAgendaData.tagline || ''}*\n\n${currentAgendaData.overview || ''}\n\n## Schedule\n\n`;
+        (currentAgendaData.schedule || []).forEach(s => {
+            md += `### ${s.time} — ${s.title} (${s.type})\n`;
+            md += `**Track:** ${s.track} | **Speaker:** ${s.speaker}\n\n`;
+            md += `${s.description}\n\n`;
+        });
+
+        navigator.clipboard.writeText(md).then(() => {
+            alert('✅ Conference schedule copied to clipboard in Markdown format!');
+        });
+    }
+</script>
+{% endblock %}

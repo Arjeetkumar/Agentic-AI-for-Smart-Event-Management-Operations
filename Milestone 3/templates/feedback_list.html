@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}My Feedback — EventOps AI{% endblock %}
+{% block content %}<div class="page-header"><h1>My feedback</h1><p class="mb-0">Your event reviews.</p></div><div class="card"><div class="table-responsive"><table class="table mb-0 align-middle"><thead><tr><th>Event</th><th>Rating</th><th>Comment</th><th>Date</th></tr></thead><tbody>{% for item in feedbacks %}<tr><td>{{ item.event.title }}</td><td>{{ '★' * item.rating }}</td><td>{{ item.comment or '—' }}</td><td>{{ item.created_at.strftime('%d %b %Y') if item.created_at else '—' }}</td></tr>{% else %}<tr><td colspan="4" class="empty-state">You have not submitted feedback yet.</td></tr>{% endfor %}</tbody></table></div></div>{% endblock %}

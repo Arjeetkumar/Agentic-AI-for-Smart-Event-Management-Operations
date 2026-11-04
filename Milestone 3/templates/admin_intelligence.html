@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block title %}Autonomous Intelligence — EventOps AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .intel-header {
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+        border-radius: 1.25rem;
+        padding: 2.2rem 2rem;
+        color: #ffffff;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+    .intel-header::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.25), transparent 70%);
+        pointer-events: none;
+    }
+    .kpi-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.25rem;
+        padding: 1.4rem;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+    }
+    .kpi-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+        border-color: #cbd5e1;
+    }
+    .kpi-card .kpi-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        margin-bottom: 0.35rem;
+    }
+    .kpi-card .kpi-value {
+        font-size: 2.1rem;
+        font-weight: 700;
+        color: #0f172a;
+        line-height: 1.2;
+    }
+    .kpi-card .kpi-sub {
+        font-size: 0.82rem;
+        margin-top: 0.4rem;
+        color: #64748b;
+    }
+    .kpi-icon-badge {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        margin-bottom: 0.8rem;
+    }
+    .chart-panel {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.25rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
+        height: 100%;
+    }
+    .agent-table-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.25rem;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
+    }
+    .agent-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.25rem 0.65rem;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+    .agent-status-active {
+        background: #dcfce7;
+        color: #15803d;
+    }
+    .agent-status-idle {
+        background: #fef9c3;
+        color: #a16207;
+    }
+    .health-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        padding: 0.35rem 0.85rem;
+        border-radius: 30px;
+        font-size: 0.82rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-4 py-2">
+    <!-- Header -->
+    <div class="intel-header">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="health-pill"><i class="bi bi-shield-check"></i> System Autonomous Health {{ health_score }}%</span>
+                    <span class="text-white-50" style="font-size: 0.82rem;">Updated at {{ last_updated }}</span>
+                </div>
+                <h1 class="h2 fw-bold text-white mb-1">Autonomous Event Intelligence</h1>
+                <p class="mb-0 text-white-50">{{ metrics_note }}</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('admin_incidents') }}" class="btn btn-outline-light btn-sm px-3 rounded-pill">
+                    <i class="bi bi-exclamation-triangle me-1"></i> Incidents ({{ open_incidents }})
+                </a>
+                <a href="{{ url_for('admin_events') }}" class="btn btn-light btn-sm px-3 rounded-pill text-primary fw-semibold">
+                    <i class="bi bi-calendar3 me-1"></i> Event Schedule
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI Grid -->
+    <div class="row g-3 mb-4">
+        <!-- Health Score -->
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="kpi-card">
+                <div class="kpi-icon-badge bg-primary-subtle text-primary">
+                    <i class="bi bi-heart-pulse"></i>
+                </div>
+                <div class="kpi-label">Health Score</div>
+                <div class="kpi-value">{{ health_score }}%</div>
+                <div class="kpi-sub text-success"><i class="bi bi-arrow-up-short"></i> Optimal operation</div>
+            </div>
+        </div>
+
+        <!-- Total Registrations -->
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="kpi-card">
+                <div class="kpi-icon-badge bg-success-subtle text-success">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="kpi-label">Registrations</div>
+                <div class="kpi-value">{{ total_registrations }}</div>
+                <div class="kpi-sub">{{ checked_in }} checked in</div>
+            </div>
+        </div>
+
+        <!-- Active Agents -->
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="kpi-card">
+                <div class="kpi-icon-badge bg-info-subtle text-info">
+                    <i class="bi bi-cpu"></i>
+                </div>
+                <div class="kpi-label">Active Agents</div>
+                <div class="kpi-value">{{ active_agents }}/{{ total_agents }}</div>
+                <div class="kpi-sub text-info"><i class="bi bi-activity"></i> All workers online</div>
+            </div>
+        </div>
+
+        <!-- Open Incidents -->
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="kpi-card">
+                <div class="kpi-icon-badge bg-warning-subtle text-warning">
+                    <i class="bi bi-shield-exclamation"></i>
+                </div>
+                <div class="kpi-label">Incidents</div>
+                <div class="kpi-value">{{ open_incidents }}</div>
+                <div class="kpi-sub">{{ resolved_incidents }} resolved</div>
+            </div>
+        </div>
+
+        <!-- Sponsor ROI -->
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="kpi-card">
+                <div class="kpi-icon-badge bg-purple-subtle text-primary" style="background:#f3e8ff; color:#7e22ce !important;">
+                    <i class="bi bi-trophy"></i>
+                </div>
+                <div class="kpi-label">Sponsor ROI</div>
+                <div class="kpi-value">{{ sponsor_roi }}%</div>
+                <div class="kpi-sub">{{ sponsor_count }} active sponsors</div>
+            </div>
+        </div>
+
+        <!-- Venues Count -->
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="kpi-card">
+                <div class="kpi-icon-badge bg-secondary-subtle text-secondary">
+                    <i class="bi bi-building"></i>
+                </div>
+                <div class="kpi-label">Venues</div>
+                <div class="kpi-value">{{ venue_count }}</div>
+                <div class="kpi-sub">Managed facilities</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-7">
+            <div class="chart-panel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">System Health & Telemetry Trend</h5>
+                    <span class="badge bg-light text-muted border">Weekly (Mon–Sun)</span>
+                </div>
+                <div style="height: 280px;">
+                    <canvas id="healthTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="chart-panel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Agent Intelligence Performance</h5>
+                    <span class="badge bg-light text-muted border">Agent Index</span>
+                </div>
+                <div style="height: 280px;">
+                    <canvas id="agentRadarChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Autonomous Multi-Agent Telemetry Table -->
+    <div class="agent-table-card">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-light">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-diagram-3 me-2 text-primary"></i>Autonomous Agent Fleet</h5>
+            <span class="badge bg-primary-subtle text-primary fw-semibold px-3 py-2 rounded-pill">
+                Task Completion: {{ task_completion }}% ({{ tasks_completed }}/{{ tasks_total }})
+            </span>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Agent Name</th>
+                        <th>Status</th>
+                        <th>Intelligence Score</th>
+                        <th>Tasks Processed</th>
+                        <th>Success Rate</th>
+                        <th>Memory / CPU</th>
+                        <th>Uptime</th>
+                        <th class="pe-4 text-end">Last Activity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for agent in agents %}
+                    <tr>
+                        <td class="ps-4 fw-semibold text-dark">
+                            <i class="bi bi-robot text-primary me-2"></i>{{ agent.name }} Agent
+                        </td>
+                        <td>
+                            <span class="agent-status-pill {{ 'agent-status-active' if agent.status == 'active' else 'agent-status-idle' }}">
+                                <i class="bi bi-circle-fill" style="font-size: 0.45rem;"></i> {{ agent.status|capitalize }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fw-bold">{{ agent.score }}%</span>
+                                <div class="progress flex-grow-1" style="height: 6px; width: 60px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ agent.score }}%;"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ agent.tasks_processed }}</td>
+                        <td>
+                            <span class="badge text-bg-{{ 'success' if agent.success_rate >= 90 else 'warning' }}">
+                                {{ agent.success_rate }}%
+                            </span>
+                        </td>
+                        <td><small class="text-muted">{{ agent.memory }} · {{ agent.cpu }}</small></td>
+                        <td><small class="text-muted">{{ agent.uptime }}</small></td>
+                        <td class="pe-4 text-end text-muted"><small>{{ agent.last_activity }}</small></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // 1. Health Trend Line Chart
+        const trendCtx = document.getElementById('healthTrendChart').getContext('2d');
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: {{ health_trend['labels']|tojson }},
+                datasets: [{
+                    label: 'Health Score (%)',
+                    data: {{ health_trend['values']|tojson }},
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.08)',
+                    fill: true,
+                    tension: 0.35,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#4f46e5',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        min: 60,
+                        max: 100,
+                        grid: { color: '#f1f5f9' },
+                        ticks: { callback: v => v + '%' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // 2. Agent Bar Chart
+        const agentCtx = document.getElementById('agentRadarChart').getContext('2d');
+        const agentNames = {{ agents|map(attribute='name')|list|tojson }};
+        const agentScores = {{ agents|map(attribute='score')|list|tojson }};
+
+        new Chart(agentCtx, {
+            type: 'bar',
+            data: {
+                labels: agentNames,
+                datasets: [{
+                    label: 'Efficiency Score',
+                    data: agentScores,
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.85)',
+                        'rgba(16, 185, 129, 0.85)',
+                        'rgba(245, 158, 11, 0.85)',
+                        'rgba(139, 92, 246, 0.85)',
+                        'rgba(239, 68, 68, 0.85)'
+                    ],
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 100,
+                        grid: { color: '#f1f5f9' },
+                        ticks: { callback: v => v + '%' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

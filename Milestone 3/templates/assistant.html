@@ -1,0 +1,715 @@
+{% extends "base.html" %}
+
+{% block title %}AI Assistant — EventOps AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-wrapper {
+        max-width: 960px;
+        margin: 0 auto;
+    }
+    .chat-container {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.5rem;
+        box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 78vh;
+        min-height: 580px;
+    }
+    .chat-header {
+        background: linear-gradient(135deg, #1e40af, #4338ca, #6d28d9);
+        color: white;
+        padding: 1.1rem 1.6rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .chat-header .left {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+    }
+    .chat-header .left-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.16);
+        backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.2rem 0.65rem;
+        border-radius: 20px;
+        background: rgba(16, 185, 129, 0.2);
+        color: #6ee7b7;
+        border: 1px solid rgba(110, 231, 183, 0.3);
+    }
+    .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #34d399;
+        box-shadow: 0 0 8px #34d399;
+        animation: pulseDot 2s infinite;
+    }
+    @keyframes pulseDot {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(0.85); }
+    }
+    .chat-header .actions button {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.4rem 0.9rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+    .chat-header .actions button:hover {
+        background: rgba(255, 255, 255, 0.28);
+        transform: translateY(-1px);
+    }
+    .quick-actions-bar {
+        padding: 0.75rem 1.25rem;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: thin;
+    }
+    .quick-actions-bar::-webkit-scrollbar {
+        height: 4px;
+    }
+    .quick-actions-bar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+    .qa-btn {
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        border-radius: 20px;
+        padding: 0.35rem 0.95rem;
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: #334155;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        flex-shrink: 0;
+    }
+    .qa-btn:hover {
+        background: #2563eb;
+        color: #ffffff;
+        border-color: #2563eb;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+    }
+    .chat-messages {
+        flex: 1;
+        padding: 1.5rem;
+        overflow-y: auto;
+        background: #f1f5f9;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        scroll-behavior: smooth;
+    }
+    .message {
+        max-width: 82%;
+        padding: 0.95rem 1.3rem;
+        border-radius: 1.2rem;
+        line-height: 1.6;
+        word-wrap: break-word;
+        position: relative;
+        animation: fadeInMsg 0.25s ease-out;
+        font-size: 0.94rem;
+    }
+    @keyframes fadeInMsg {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .message.user {
+        align-self: flex-end;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: #ffffff;
+        border-bottom-right-radius: 0.25rem;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.22);
+    }
+    .message.assistant {
+        align-self: flex-start;
+        background: #ffffff;
+        color: #0f172a;
+        border: 1px solid #e2e8f0;
+        border-bottom-left-radius: 0.25rem;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    }
+    .message .time {
+        font-size: 0.68rem;
+        margin-top: 0.45rem;
+        display: block;
+        opacity: 0.75;
+    }
+    .message.user .time {
+        text-align: right;
+        color: rgba(255, 255, 255, 0.8);
+    }
+    .message.assistant .time {
+        text-align: right;
+        color: #64748b;
+    }
+    .message.assistant .copy-btn {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.6rem;
+        background: transparent;
+        border: none;
+        color: #94a3b8;
+        font-size: 0.85rem;
+        cursor: pointer;
+        opacity: 0;
+        transition: all 0.2s;
+        padding: 0.2rem 0.4rem;
+        border-radius: 6px;
+    }
+    .message.assistant:hover .copy-btn {
+        opacity: 1;
+    }
+    .message.assistant .copy-btn:hover {
+        color: #1e293b;
+        background: #f1f5f9;
+    }
+    .message ul {
+        padding-left: 1.3rem;
+        margin: 0.4rem 0 0 0;
+    }
+    .message li {
+        margin-bottom: 0.35rem;
+    }
+    .message strong {
+        font-weight: 600;
+    }
+    .message code {
+        background: rgba(0, 0, 0, 0.06);
+        padding: 0.15rem 0.35rem;
+        border-radius: 4px;
+        font-size: 0.88em;
+    }
+    .message.user code {
+        background: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+    }
+    .typing-indicator {
+        display: none;
+        align-self: flex-start;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        padding: 0.8rem 1.2rem;
+        border-radius: 1.2rem;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+        color: #64748b;
+        font-size: 0.85rem;
+    }
+    .typing-dots {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-left: 6px;
+        vertical-align: middle;
+    }
+    .typing-dots span {
+        width: 6px;
+        height: 6px;
+        background: #6366f1;
+        border-radius: 50%;
+        animation: typingBounce 1.4s infinite ease-in-out both;
+    }
+    .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes typingBounce {
+        0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+        40% { transform: scale(1); opacity: 1; }
+    }
+    .chat-input-bar {
+        padding: 1rem 1.3rem;
+        background: #ffffff;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .chat-input-bar input {
+        flex: 1;
+        padding: 0.8rem 1.25rem;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 50px;
+        font-size: 0.94rem;
+        transition: all 0.2s ease;
+        background: #f8fafc;
+    }
+    .chat-input-bar input:focus {
+        border-color: #2563eb;
+        background: #ffffff;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    .chat-input-bar button {
+        padding: 0.8rem 1.6rem;
+        border: none;
+        border-radius: 50px;
+        background: linear-gradient(135deg, #2563eb, #4338ca);
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 0.92rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+    .chat-input-bar button:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+    }
+    .chat-input-bar button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+    .mic-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 50% !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        background: #f1f5f9 !important;
+        color: #475569 !important;
+        border: 1.5px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        transition: all 0.2s ease !important;
+    }
+    .mic-btn:hover {
+        background: #e2e8f0 !important;
+        color: #1e293b !important;
+    }
+    .mic-btn.listening {
+        background: #ef4444 !important;
+        color: #ffffff !important;
+        border-color: #ef4444 !important;
+        animation: pulseMic 1.2s infinite;
+    }
+    @keyframes pulseMic {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+        70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .speak-btn {
+        margin-right: 0.35rem;
+    }
+    @media (max-width: 576px) {
+        .chat-container { height: 84vh; min-height: unset; }
+        .message { max-width: 90%; }
+        .quick-actions-bar { padding: 0.6rem 0.8rem; }
+        .qa-btn { font-size: 0.75rem; padding: 0.25rem 0.75rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-3 chat-wrapper">
+    <div class="chat-container">
+        <!-- Header -->
+        <div class="chat-header">
+            <div class="left">
+                <div class="left-icon">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <h5 class="mb-0 fw-bold">EventOps AI Assistant</h5>
+                        <span class="status-pill"><span class="status-dot"></span> Gemini Voice & Chat</span>
+                    </div>
+                    <small style="opacity: 0.85; font-size: 0.78rem;">Autonomous Event Operations Intelligence</small>
+                </div>
+            </div>
+            <div class="actions">
+                <button id="clearChatBtn" title="Clear chat history">
+                    <i class="bi bi-arrow-counterclockwise"></i> Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Actions Bar -->
+        <div class="quick-actions-bar" id="quickActions">
+            <button class="qa-btn" data-msg="Show me upcoming events"><i class="bi bi-calendar-event"></i> Upcoming Events</button>
+            <button class="qa-btn" data-msg="Show my registrations"><i class="bi bi-ticket-perforated"></i> My Passes</button>
+            <button class="qa-btn" data-msg="List all venues"><i class="bi bi-building"></i> Venues</button>
+            <button class="qa-btn" data-msg="List all speakers"><i class="bi bi-mic"></i> Speakers</button>
+            <button class="qa-btn" data-msg="Remind me about the AI Summit 1 hour before"><i class="bi bi-bell"></i> Set Reminder</button>
+        </div>
+
+        <!-- Messages Area -->
+        <div class="chat-messages" id="chatMessages">
+            <div class="message assistant" id="welcomeMsg">
+                👋 <strong>Hello! I am your EventOps AI Assistant.</strong><br>
+                I can help you explore upcoming conferences, manage your registrations, set automatic smart reminders, check venue capacities, or learn about our keynote speakers.
+                <br><br>
+                <em>Try speaking with the microphone button, typing a query, or clicking any of the quick action buttons above!</em>
+                <span class="time">{{ now.strftime('%I:%M %p') }}</span>
+            </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div class="typing-indicator" id="typingIndicator">
+            <i class="bi bi-cpu me-1"></i> EventOps AI is thinking
+            <div class="typing-dots">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="chat-input-bar">
+            <button class="mic-btn" id="micBtn" type="button" title="Speak to AI Assistant (Voice Input)">
+                <i class="bi bi-mic-fill fs-5"></i>
+            </button>
+            <input type="text" id="userInput" placeholder="Ask about events, speakers, reminders, or speak..." autofocus autocomplete="off">
+            <button id="sendBtn">
+                <span>Send</span> <i class="bi bi-send-fill"></i>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function() {
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const clearBtn = document.getElementById('clearChatBtn');
+
+        function getTimestamp() {
+            const now = new Date();
+            return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Robust client-side markdown formatter
+        function formatMarkdown(text) {
+            if (text === null || text === undefined) return '';
+            let raw = String(text);
+
+            // 1. Escape HTML
+            let out = raw
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+            // 2. Markdown links: [text](url)
+            out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-info fw-bold text-decoration-underline" target="_blank" rel="noopener noreferrer">$1</a>');
+
+            // 3. Bold: **text**
+            out = out.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+            // 4. Inline code: `code`
+            out = out.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+            // 5. Italic: *text*
+            out = out.replace(/(^|[^*])\*(?!\*)([^*]+)\*(?!\*)/g, '$1<em>$2</em>');
+
+            // 6. Line by line for lists & breaks
+            const lines = out.split('\n');
+            let formattedLines = [];
+            let inList = false;
+
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i].trim();
+                if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
+                    if (!inList) {
+                        formattedLines.push('<ul>');
+                        inList = true;
+                    }
+                    let itemText = line.replace(/^[•\-*]\s*/, '');
+                    formattedLines.push(`<li>${itemText}</li>`);
+                } else {
+                    if (inList) {
+                        formattedLines.push('</ul>');
+                        inList = false;
+                    }
+                    if (line.length > 0) {
+                        formattedLines.push(`<p class="mb-1">${line}</p>`);
+                    }
+                }
+            }
+            if (inList) {
+                formattedLines.push('</ul>');
+            }
+
+            return formattedLines.join('');
+        }
+
+        function appendMessage(text, sender) {
+            const div = document.createElement('div');
+            div.className = `message ${sender}`;
+
+            const contentWrap = document.createElement('div');
+            contentWrap.innerHTML = formatMarkdown(text);
+            div.appendChild(contentWrap);
+
+            // Timestamp
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'time';
+            timeSpan.textContent = getTimestamp();
+            div.appendChild(timeSpan);
+
+            // Audio Readout & Copy buttons for assistant messages
+            if (sender === 'assistant') {
+                if ('speechSynthesis' in window) {
+                    const speakBtn = document.createElement('button');
+                    speakBtn.className = 'copy-btn speak-btn';
+                    speakBtn.innerHTML = '<i class="bi bi-volume-up"></i>';
+                    speakBtn.title = 'Read aloud';
+                    speakBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        if (window.speechSynthesis.speaking) {
+                            window.speechSynthesis.cancel();
+                            speakBtn.innerHTML = '<i class="bi bi-volume-up"></i>';
+                        } else {
+                            window.speechSynthesis.cancel();
+                            const cleanText = text.replace(/[*#`_•]/g, '');
+                            const utter = new SpeechSynthesisUtterance(cleanText);
+                            utter.rate = 1.0;
+                            utter.onend = () => { speakBtn.innerHTML = '<i class="bi bi-volume-up"></i>'; };
+                            utter.onerror = () => { speakBtn.innerHTML = '<i class="bi bi-volume-up"></i>'; };
+                            speakBtn.innerHTML = '<i class="bi bi-stop-circle text-danger"></i>';
+                            window.speechSynthesis.speak(utter);
+                        }
+                    });
+                    div.appendChild(speakBtn);
+                }
+
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-btn';
+                copyBtn.innerHTML = '<i class="bi bi-clipboard"></i>';
+                copyBtn.title = 'Copy message';
+                copyBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(String(text)).then(() => {
+                        copyBtn.innerHTML = '<i class="bi bi-check2 text-success"></i>';
+                        setTimeout(() => {
+                            copyBtn.innerHTML = '<i class="bi bi-clipboard"></i>';
+                        }, 2000);
+                    }).catch(() => {});
+                });
+                div.appendChild(copyBtn);
+            }
+
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTyping() {
+            typingIndicator.style.display = 'block';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTyping() {
+            typingIndicator.style.display = 'none';
+        }
+
+        function setInputEnabled(enabled) {
+            userInput.disabled = !enabled;
+            sendBtn.disabled = !enabled;
+        }
+
+        async function sendMessage(message) {
+            if (!message || !message.trim()) return;
+            const msg = message.trim();
+            userInput.value = '';
+            appendMessage(msg, 'user');
+            showTyping();
+            setInputEnabled(false);
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 45000);
+
+            try {
+                const response = await fetch('/api/assistant', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ message: msg }),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+                hideTyping();
+
+                // Check for session timeout / auth redirect
+                if (response.status === 401 || (response.redirected && response.url.includes('/login'))) {
+                    appendMessage('⚠️ Your session has expired. Please [log in again](/login) to continue chatting.', 'assistant');
+                    return;
+                }
+
+                let data = null;
+                const contentType = response.headers.get('content-type') || '';
+                if (contentType.includes('application/json')) {
+                    try {
+                        data = await response.json();
+                    } catch (parseErr) {
+                        data = null;
+                    }
+                }
+
+                if (!response.ok) {
+                    const errMsg = (data && data.error)
+                        ? data.error
+                        : `Server error (${response.status}). Please try again shortly.`;
+                    appendMessage('⚠️ ' + errMsg, 'assistant');
+                    return;
+                }
+
+                if (data && data.reply) {
+                    appendMessage(data.reply, 'assistant');
+                } else if (data && data.error) {
+                    appendMessage('⚠️ ' + data.error, 'assistant');
+                } else {
+                    appendMessage('⚠️ The assistant returned an empty response. Please try again.', 'assistant');
+                }
+            } catch (error) {
+                clearTimeout(timeoutId);
+                hideTyping();
+
+                if (error.name === 'AbortError') {
+                    appendMessage('⚠️ Request timed out. The assistant took longer than expected. Please try again.', 'assistant');
+                } else if (!navigator.onLine) {
+                    appendMessage('⚠️ You appear to be offline. Please check your internet connection.', 'assistant');
+                } else {
+                    console.error('Assistant API request failed:', error);
+                    appendMessage('⚠️ Unable to connect to the assistant server. Please verify the application is running and try again.', 'assistant');
+                }
+            } finally {
+                setInputEnabled(true);
+                userInput.focus();
+            }
+        }
+
+        sendBtn.addEventListener('click', function() {
+            sendMessage(userInput.value);
+        });
+
+        userInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage(userInput.value);
+            }
+        });
+
+        // Quick action buttons
+        document.querySelectorAll('.qa-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const msg = this.getAttribute('data-msg');
+                sendMessage(msg);
+            });
+        });
+
+        // Reset conversation
+        clearBtn.addEventListener('click', function() {
+            chatMessages.innerHTML = '';
+            const welcomeDiv = document.createElement('div');
+            welcomeDiv.className = 'message assistant';
+            welcomeDiv.id = 'welcomeMsg';
+            welcomeDiv.innerHTML = `
+                👋 <strong>Conversation reset.</strong><br>
+                How can I assist you with your events today?
+                <span class="time">${getTimestamp()}</span>
+            `;
+            chatMessages.appendChild(welcomeDiv);
+            userInput.focus();
+        });
+
+        // Speech Recognition (Voice Input)
+        const micBtn = document.getElementById('micBtn');
+        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (SpeechRec && micBtn) {
+            const recognition = new SpeechRec();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            let isListening = false;
+
+            micBtn.addEventListener('click', function() {
+                if (isListening) {
+                    recognition.stop();
+                } else {
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        console.warn('Recognition start error:', e);
+                    }
+                }
+            });
+
+            recognition.onstart = function() {
+                isListening = true;
+                micBtn.classList.add('listening');
+                micBtn.innerHTML = '<i class="bi bi-mic-mute-fill fs-5"></i>';
+                userInput.placeholder = '🎙️ Listening... Speak now';
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                userInput.value = transcript;
+                sendMessage(transcript);
+            };
+
+            recognition.onend = function() {
+                isListening = false;
+                micBtn.classList.remove('listening');
+                micBtn.innerHTML = '<i class="bi bi-mic-fill fs-5"></i>';
+                userInput.placeholder = 'Ask about events, speakers, reminders, or speak...';
+            };
+
+            recognition.onerror = function(event) {
+                console.warn('Speech recognition error:', event.error);
+                recognition.onend();
+            };
+        } else if (micBtn) {
+            micBtn.title = 'Speech recognition not supported in this browser';
+            micBtn.style.opacity = '0.4';
+        }
+
+        userInput.focus();
+    })();
+</script>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Profile — EventOps AI{% endblock %}
+{% block content %}
+<div class="page-header"><h1><i class="bi bi-person-circle"></i> Profile</h1><p class="mb-0">Manage your account and event activity.</p></div>
+<div class="row g-4">
+  <div class="col-lg-5"><div class="card p-4"><h4>{{ current_user.name }}</h4><p class="text-muted mb-1">{{ current_user.email }}</p><span class="badge text-bg-primary">{{ current_user.role|capitalize }}</span><hr><p class="mb-0">Member since {{ current_user.created_at.strftime('%d %b %Y') if current_user.created_at else 'Recently' }}</p></div></div>
+  <div class="col-lg-7"><div class="row g-3">{% for label, value in [('Total registrations', stats.total_registrations), ('Checked in', stats.checked_in), ('Pending', stats.pending)] %}<div class="col-md-4"><div class="card stat-card p-3"><small class="text-muted">{{ label }}</small><h2 class="mb-0">{{ value }}</h2></div></div>{% endfor %}</div></div>
+</div>
+{% endblock %}

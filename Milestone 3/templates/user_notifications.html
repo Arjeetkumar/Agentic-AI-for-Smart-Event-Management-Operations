@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Notifications — EventOps AI{% endblock %}
+{% block content %}
+<div class="page-header"><h1><i class="bi bi-bell"></i> Notifications</h1><p class="mb-0">Updates related to your events and registrations.</p></div>
+<div class="card"><div class="list-group list-group-flush">{% for notification in notifications %}<div class="list-group-item p-4"><div class="d-flex justify-content-between"><h5 class="mb-1">{{ notification.subject or 'Notification' }}</h5><small class="text-muted">{{ notification.sent_at.strftime('%d %b %Y %H:%M') if notification.sent_at else '' }}</small></div><p class="mb-0">{{ notification.message }}</p></div>{% else %}<div class="empty-state">You have no notifications.</div>{% endfor %}</div></div>
+{% endblock %}
