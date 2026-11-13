@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Digital Pass: {{ event.title if event else 'Event' }} — EventOps AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .pass-container {
+        min-height: 85vh;
+        background: radial-gradient(circle at 10% 20%, #1a1e36 0%, #0c0f1d 90%);
+        padding: 3rem 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .ticket-card {
+        width: 100%;
+        max-width: 480px;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 28px;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 40px rgba(13, 110, 253, 0.2);
+        overflow: hidden;
+        color: #ffffff;
+        position: relative;
+    }
+
+    .ticket-header {
+        background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);
+        padding: 2rem;
+        text-align: center;
+        position: relative;
+    }
+
+    .ticket-badge-tier {
+        display: inline-block;
+        padding: 0.35rem 1.2rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(8px);
+        margin-bottom: 0.8rem;
+    }
+
+    .ticket-body {
+        padding: 2rem;
+    }
+
+    .qr-frame {
+        background: #ffffff;
+        padding: 1.25rem;
+        border-radius: 20px;
+        display: inline-block;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        margin: 1rem 0;
+    }
+
+    .qr-canvas {
+        display: block;
+        margin: 0 auto;
+    }
+
+    .ticket-code {
+        font-family: 'Courier New', Courier, monospace;
+        letter-spacing: 3px;
+        font-weight: 700;
+        color: #60a5fa;
+        font-size: 1.1rem;
+        margin-top: 0.5rem;
+    }
+
+    .tear-line {
+        position: relative;
+        height: 24px;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        margin: 0.5rem 0;
+    }
+
+    .tear-line::before, .tear-line::after {
+        content: '';
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        background: #0c0f1d;
+        border-radius: 50%;
+        top: 0;
+    }
+
+    .tear-line::before { left: -12px; }
+    .tear-line::after { right: -12px; }
+
+    .tear-line-dashed {
+        width: 100%;
+        border-top: 2px dashed rgba(255, 255, 255, 0.2);
+    }
+
+    .meta-item {
+        margin-bottom: 1rem;
+    }
+
+    .meta-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #94a3b8;
+    }
+
+    .meta-val {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #f8fafc;
+    }
+
+    .status-badge-verified {
+        background: rgba(16, 185, 129, 0.2);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        padding: 0.4rem 1rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    @media print {
+        body * { visibility: hidden; }
+        .ticket-card, .ticket-card * { visibility: visible; }
+        .ticket-card {
+            position: absolute;
+            left: 50%;
+            top: 20px;
+            transform: translateX(-50%);
+            box-shadow: none;
+            border: 1px solid #ccc;
+            color: #000 !important;
+            background: #fff !important;
+        }
+        .ticket-header { background: #0d6efd !important; -webkit-print-color-adjust: exact; }
+        .no-print { display: none !important; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pass-container">
+    <div class="ticket-card">
+        <!-- Header -->
+        <div class="ticket-header">
+            <div class="ticket-badge-tier">
+                <i class="bi bi-shield-check me-1"></i> {{ registration.ticket_type or 'Attendee' }} Pass
+            </div>
+            <h3 class="fw-bold mb-1">{{ event.title if event else 'EventOps AI Pass' }}</h3>
+            <p class="text-white-50 mb-0 small">{{ event.location or 'Global Tech Center' }}</p>
+        </div>
+
+        <!-- Body -->
+        <div class="ticket-body text-center">
+            <div class="mb-2">
+                <div class="status-badge-verified">
+                    {% if registration.checked_in %}
+                        <i class="bi bi-check-circle-fill"></i> Checked-In at Venue
+                    {% else %}
+                        <i class="bi bi-check-circle"></i> Valid Entry Pass
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- QR Code Box -->
+            <div class="qr-frame">
+                <div id="qrcode"></div>
+            </div>
+
+            <div class="ticket-code">{{ ticket_code }}</div>
+            <p class="text-secondary small mb-0">Present this QR code or code at venue entrance</p>
+        </div>
+
+        <!-- Tear Line -->
+        <div class="tear-line">
+            <div class="tear-line-dashed"></div>
+        </div>
+
+        <!-- Attendee Details -->
+        <div class="p-4 pt-2">
+            <div class="row g-3">
+                <div class="col-6">
+                    <div class="meta-item">
+                        <div class="meta-label">Attendee Name</div>
+                        <div class="meta-val">{{ registration.user.name if registration.user else 'Guest Attendee' }}</div>
+                    </div>
+                </div>
+                <div class="col-6 text-end">
+                    <div class="meta-item">
+                        <div class="meta-label">Pass Reference</div>
+                        <div class="meta-val">#{{ registration.id }}</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="meta-item">
+                        <div class="meta-label">Event Date</div>
+                        <div class="meta-val"><i class="bi bi-calendar3 me-1 text-primary"></i> {{ event.date or 'TBD' }}</div>
+                    </div>
+                </div>
+                <div class="col-6 text-end">
+                    <div class="meta-item">
+                        <div class="meta-label">Doors Open</div>
+                        <div class="meta-val"><i class="bi bi-clock me-1 text-primary"></i> {{ event.time or '09:00 AM' }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex flex-column gap-2 mt-3 no-print">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-light flex-grow-1" onclick="window.print()">
+                        <i class="bi bi-printer me-1"></i> Print Pass
+                    </button>
+                    {% if event %}
+                    <a href="{{ url_for('event_calendar_ics', event_id=event.id) }}" class="btn btn-outline-info flex-grow-1">
+                        <i class="bi bi-calendar-plus me-1"></i> Add to Calendar
+                    </a>
+                    {% endif %}
+                </div>
+                <a href="{{ url_for('my_registrations') }}" class="btn btn-sm btn-link text-white-50 text-decoration-none">
+                    <i class="bi bi-arrow-left me-1"></i> Back to My Registrations
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- QR Code Generator Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const qrCodeText = "{{ ticket_code }}";
+        const qrContainer = document.getElementById('qrcode');
+        if (typeof QRCode !== 'undefined') {
+            new QRCode(qrContainer, {
+                text: qrCodeText,
+                width: 160,
+                height: 160,
+                colorDark: "#0f172a",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        } else {
+            // Fallback to QR API image if CDN blocked
+            qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(qrCodeText)}" alt="QR Code" width="160" height="160">`;
+        }
+    });
+</script>
+{% endblock %}

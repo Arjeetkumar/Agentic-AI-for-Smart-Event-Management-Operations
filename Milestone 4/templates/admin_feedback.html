@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Attendee Feedback & AI Sentiment — EventOps AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sentiment-banner {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        border-radius: 1.5rem;
+        color: white;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .rating-stars {
+        color: #f59e0b;
+    }
+
+    .feedback-card {
+        background: white;
+        border-radius: 1.25rem;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-2 rounded-pill mb-2">
+                <i class="bi bi-chat-heart me-1"></i> Quality & Satisfaction
+            </span>
+            <h1 class="fw-bold mb-1">Attendee Feedback Intelligence</h1>
+            <p class="text-muted mb-0">Monitor attendee reviews, sentiment trends, and AI-synthesized recommendations.</p>
+        </div>
+        <button class="btn btn-primary" onclick="loadSentimentAnalytics()">
+            <i class="bi bi-arrow-clockwise me-1"></i> Refresh AI Analysis
+        </button>
+    </div>
+</div>
+
+<!-- AI Sentiment & Insights Section -->
+<div class="sentiment-banner shadow-sm mb-4">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-4 text-center text-lg-start border-end-lg border-secondary pe-lg-4">
+            <span class="text-uppercase small text-white-50 fw-bold letter-spacing-1">Satisfaction Score</span>
+            <div class="display-4 fw-bold text-success my-1" id="sentimentScore">--%</div>
+            <p class="text-white-50 small mb-0">Based on attendee feedback reviews and sentiment modeling</p>
+            <div class="progress mt-3 bg-secondary" style="height: 8px;">
+                <div class="progress-bar bg-success" id="sentimentProgress" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="col-lg-8 ps-lg-4">
+            <div class="d-flex align-items-center mb-2">
+                <i class="bi bi-sparkles text-warning fs-5 me-2"></i>
+                <h5 class="fw-bold mb-0">AI Sentiment Summary</h5>
+            </div>
+            <p class="text-white-50 mb-3" id="aiSummaryText">
+                Analyzing attendee comments and session ratings...
+            </p>
+
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <div class="p-2 bg-dark rounded-3 border border-secondary">
+                        <div class="small fw-bold text-success mb-1"><i class="bi bi-hand-thumbs-up me-1"></i> Key Strengths</div>
+                        <ul class="mb-0 small ps-3 text-white-50" id="strengthsList">
+                            <li>Loading insights...</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-2 bg-dark rounded-3 border border-secondary">
+                        <div class="small fw-bold text-warning mb-1"><i class="bi bi-lightbulb me-1"></i> Action Recommendations</div>
+                        <ul class="mb-0 small ps-3 text-white-50" id="improvementsList">
+                            <li>Loading insights...</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feedback Table Section -->
+<div class="feedback-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0">Recent Attendee Reviews</h4>
+        <span class="badge bg-light text-dark border">{{ feedbacks|length }} Total Submissions</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Event</th>
+                    <th>Attendee</th>
+                    <th>Rating</th>
+                    <th>Comments & Experience</th>
+                    <th>Date</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in feedbacks %}
+                <tr>
+                    <td>
+                        <span class="fw-semibold text-dark">{{ item.event.title }}</span>
+                        <br><small class="text-muted">{{ item.event.date or 'TBD' }}</small>
+                    </td>
+                    <td>
+                        <div class="fw-semibold">{{ item.user.name }}</div>
+                        <small class="text-muted">{{ item.user.email }}</small>
+                    </td>
+                    <td>
+                        <div class="rating-stars">
+                            {% for i in range(item.rating) %}
+                                <i class="bi bi-star-fill"></i>
+                            {% endfor %}
+                            {% for i in range(5 - item.rating) %}
+                                <i class="bi bi-star text-secondary"></i>
+                            {% endfor %}
+                        </div>
+                        <small class="text-muted fw-bold">{{ item.rating }} / 5</small>
+                    </td>
+                    <td>
+                        <div class="text-secondary" style="max-width: 380px;">
+                            {{ item.comment or 'No written comment provided.' }}
+                        </div>
+                    </td>
+                    <td>
+                        <small class="text-muted">{{ item.created_at.strftime('%b %d, %Y') if item.created_at else 'Recent' }}</small>
+                    </td>
+                    <td class="text-end">
+                        <form method="post" action="{{ url_for('admin_feedback_delete', feedback_id=item.id) }}"
+                              onsubmit="return confirm('Delete this feedback review?');">
+                            <button class="btn btn-sm btn-outline-danger" title="Delete Review">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <i class="bi bi-chat-square-dots display-4 d-block mb-2 text-primary opacity-50"></i>
+                        No attendee feedback recorded yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    async function loadSentimentAnalytics() {
+        try {
+            const res = await fetch('/api/admin/feedback-sentiment');
+            const data = await res.json();
+
+            document.getElementById('sentimentScore').textContent = data.sentiment_score + '%';
+            document.getElementById('sentimentProgress').style.width = data.sentiment_score + '%';
+            document.getElementById('aiSummaryText').textContent = data.summary;
+
+            // Strengths list
+            const strUl = document.getElementById('strengthsList');
+            strUl.innerHTML = '';
+            (data.strengths || []).forEach(s => {
+                const li = document.createElement('li');
+                li.textContent = s;
+                strUl.appendChild(li);
+            });
+
+            // Improvements list
+            const impUl = document.getElementById('improvementsList');
+            impUl.innerHTML = '';
+            (data.improvements || []).forEach(im => {
+                const li = document.createElement('li');
+                li.textContent = im;
+                impUl.appendChild(li);
+            });
+        } catch (err) {
+            console.error('Sentiment fetch error:', err);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadSentimentAnalytics);
+</script>
+{% endblock %}

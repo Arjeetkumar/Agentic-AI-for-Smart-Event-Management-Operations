@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+
+{% block title %}Live Check-in & QR Verification — EventOps AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .checkin-hero {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: white;
+        padding: 2.5rem 0;
+        border-radius: 0 0 2rem 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .kpi-card {
+        background: white;
+        border: none;
+        border-radius: 1.25rem;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-3px);
+    }
+
+    .scanner-box {
+        background: #0f172a;
+        border-radius: 1.5rem;
+        color: white;
+        padding: 2rem;
+        box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+    }
+
+    #reader {
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
+        border-radius: 1rem;
+        overflow: hidden;
+    }
+
+    .checkin-success-alert {
+        display: none;
+        animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="checkin-hero shadow-sm">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-7">
+                <span class="badge bg-primary-subtle text-primary fw-semibold px-3 py-2 rounded-pill mb-2">
+                    <i class="bi bi-qr-code-scan me-1"></i> Live Verification Hub
+                </span>
+                <h1 class="fw-bold mb-2">Event Check-in Center</h1>
+                <p class="text-white-50 mb-0">Verify tickets, scan attendee QR passes, and monitor real-time door attendance.</p>
+            </div>
+            <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                <form method="GET" class="d-inline-block w-100" style="max-width: 320px;">
+                    <label class="form-label text-white-50 small mb-1">Active Event</label>
+                    <select name="event_id" class="form-select form-select-lg shadow-sm" onchange="this.form.submit()">
+                        {% for ev in events %}
+                        <option value="{{ ev.id }}" {% if selected_event and selected_event.id == ev.id %}selected{% endif %}>
+                            {{ ev.title }} ({{ ev.date or 'TBD' }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <!-- Real-time Attendance Metrics -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="kpi-card text-center">
+                <div class="text-muted small text-uppercase fw-semibold mb-1">Total Registered</div>
+                <div class="fs-2 fw-bold text-dark" id="kpiTotal">{{ total }}</div>
+                <small class="text-secondary">Expected Guests</small>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="kpi-card text-center">
+                <div class="text-muted small text-uppercase fw-semibold mb-1">Checked In</div>
+                <div class="fs-2 fw-bold text-success" id="kpiChecked">{{ checked_in }}</div>
+                <small class="text-success fw-semibold"><i class="bi bi-check-circle"></i> In Venue</small>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="kpi-card text-center">
+                <div class="text-muted small text-uppercase fw-semibold mb-1">Pending</div>
+                <div class="fs-2 fw-bold text-warning" id="kpiPending">{{ pending }}</div>
+                <small class="text-secondary">Awaiting Arrival</small>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="kpi-card text-center">
+                <div class="text-muted small text-uppercase fw-semibold mb-1">Turnout Rate</div>
+                <div class="fs-2 fw-bold text-primary" id="kpiRate">{{ pct }}%</div>
+                <div class="progress mt-2" style="height: 6px;">
+                    <div class="progress-bar bg-primary" id="kpiProgress" style="width: {{ pct }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Scan & Manual Verification Section -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-5">
+            <div class="scanner-box h-100">
+                <h4 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
+                    <span><i class="bi bi-camera me-2"></i> QR Pass Scanner</span>
+                    <button class="btn btn-sm btn-outline-light rounded-pill" id="toggleScannerBtn">
+                        <i class="bi bi-power me-1"></i> Start Camera
+                    </button>
+                </h4>
+                <div id="reader" class="mb-3 bg-dark border border-secondary" style="min-height: 220px; display: flex; align-items: center; justify-content: center;">
+                    <div class="text-center text-white-50 p-4" id="scannerPlaceholder">
+                        <i class="bi bi-qr-code fs-1 d-block mb-2 text-primary"></i>
+                        <span>Click 'Start Camera' to scan attendee QR codes live</span>
+                    </div>
+                </div>
+
+                <!-- Manual code entry -->
+                <form id="manualCheckinForm" class="mt-3">
+                    <label class="form-label text-white-50 small">Manual Reference / QR Code String</label>
+                    <div class="input-group">
+                        <input type="text" id="manualCodeInput" class="form-control" placeholder="e.g. EVT-0004-0101 or ID" required>
+                        <button class="btn btn-primary px-4 fw-semibold" type="submit">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Check In
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Feedback Banner -->
+                <div class="alert alert-success checkin-success-alert mt-3 mb-0" id="checkinAlert">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill fs-3 me-3 text-success"></i>
+                        <div>
+                            <strong id="alertAttendeeName">Attendee Name</strong> checked in!
+                            <div class="small text-muted" id="alertEventTitle">AI Summit 2026</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registered Attendees List -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                    <h4 class="fw-bold mb-0">Attendee Roster</h4>
+                    <div class="input-group" style="max-width: 260px;">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" id="tableFilterInput" class="form-control bg-light border-start-0" placeholder="Filter attendees...">
+                    </div>
+                </div>
+
+                <div class="table-responsive" style="max-height: 480px; overflow-y: auto;">
+                    <table class="table table-hover align-middle" id="rosterTable">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>Attendee</th>
+                                <th>Tier</th>
+                                <th>Pass Code</th>
+                                <th>Status</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reg in registrations %}
+                            <tr id="row-{{ reg.id }}">
+                                <td>
+                                    <div class="fw-semibold text-dark">{{ reg.user.name if reg.user else 'Guest' }}</div>
+                                    <div class="text-muted small">{{ reg.user.email if reg.user else 'No email' }}</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info-subtle text-info fw-semibold">{{ reg.ticket_type or 'Standard' }}</span>
+                                </td>
+                                <td>
+                                    <code class="text-primary fw-bold">EVT-{{ "%04d"|format(reg.id) }}</code>
+                                </td>
+                                <td>
+                                    <span class="badge status-badge-{{ reg.id }} {% if reg.checked_in %}bg-success{% else %}bg-secondary-subtle text-secondary{% endif %}">
+                                        {% if reg.checked_in %}
+                                            <i class="bi bi-check-circle-fill me-1"></i> Checked In
+                                        {% else %}
+                                            <i class="bi bi-clock me-1"></i> Pending
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-toggle-checkin {% if reg.checked_in %}btn-outline-danger{% else %}btn-success{% endif %}"
+                                            onclick="toggleCheckin({{ reg.id }})"
+                                            id="btn-{{ reg.id }}">
+                                        {% if reg.checked_in %}
+                                            <i class="bi bi-x-circle me-1"></i> Undo
+                                        {% else %}
+                                            <i class="bi bi-check-lg me-1"></i> Check In
+                                        {% endif %}
+                                    </button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    No registrations found for this event.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- HTML5 QR Code Scanner CDN -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<script>
+    let html5QrCode = null;
+    let scannerRunning = false;
+
+    // Toggle Camera QR Scanner
+    document.getElementById('toggleScannerBtn').addEventListener('click', function() {
+        const placeholder = document.getElementById('scannerPlaceholder');
+        if (scannerRunning) {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    scannerRunning = false;
+                    document.getElementById('toggleScannerBtn').innerHTML = '<i class="bi bi-power me-1"></i> Start Camera';
+                    placeholder.style.display = 'block';
+                });
+            }
+        } else {
+            placeholder.style.display = 'none';
+            html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 220, height: 220 } },
+                (decodedText) => {
+                    handleVerification(decodedText);
+                },
+                (error) => {}
+            ).then(() => {
+                scannerRunning = true;
+                document.getElementById('toggleScannerBtn').innerHTML = '<i class="bi bi-stop-circle me-1"></i> Stop Camera';
+            }).catch(err => {
+                alert("Camera access denied or unavailable: " + err);
+                placeholder.style.display = 'block';
+            });
+        }
+    });
+
+    // Manual Code Form Submission
+    document.getElementById('manualCheckinForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const code = document.getElementById('manualCodeInput').value.trim();
+        if (code) {
+            handleVerification(code);
+            document.getElementById('manualCodeInput').value = '';
+        }
+    });
+
+    // Verification Logic via API
+    async function handleVerification(code) {
+        try {
+            const res = await fetch('/api/admin/checkin/toggle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: code, action: 'checkin' })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showSuccessNotification(data);
+                updateRow(data.registration_id, true);
+                updateStats();
+            } else {
+                alert('⚠️ ' + (data.error || 'Check-in failed.'));
+            }
+        } catch (err) {
+            alert('⚠️ Network communication error. Please try again.');
+        }
+    }
+
+    // Toggle Check-in from Table
+    async function toggleCheckin(regId) {
+        try {
+            const res = await fetch('/api/admin/checkin/toggle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ registration_id: regId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                updateRow(data.registration_id, data.checked_in);
+                updateStats();
+            } else {
+                alert('⚠️ ' + (data.error || 'Failed to update check-in'));
+            }
+        } catch (err) {
+            alert('⚠️ Network communication error.');
+        }
+    }
+
+    function updateRow(regId, isChecked) {
+        const badge = document.querySelector(`.status-badge-${regId}`);
+        const btn = document.getElementById(`btn-${regId}`);
+        if (badge && btn) {
+            if (isChecked) {
+                badge.className = `badge status-badge-${regId} bg-success`;
+                badge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Checked In';
+                btn.className = 'btn btn-sm btn-outline-danger';
+                btn.innerHTML = '<i class="bi bi-x-circle me-1"></i> Undo';
+            } else {
+                badge.className = `badge status-badge-${regId} bg-secondary-subtle text-secondary`;
+                badge.innerHTML = '<i class="bi bi-clock me-1"></i> Pending';
+                btn.className = 'btn btn-sm btn-success';
+                btn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Check In';
+            }
+        }
+    }
+
+    function showSuccessNotification(data) {
+        const alertBox = document.getElementById('checkinAlert');
+        document.getElementById('alertAttendeeName').textContent = data.attendee_name;
+        document.getElementById('alertEventTitle').textContent = `${data.event_title} (${data.ticket_type})`;
+        alertBox.style.display = 'block';
+        setTimeout(() => { alertBox.style.display = 'none'; }, 4000);
+    }
+
+    function updateStats() {
+        const totalRows = document.querySelectorAll('#rosterTable tbody tr').length;
+        const checkedRows = document.querySelectorAll('#rosterTable .bg-success').length;
+        const pendingRows = totalRows - checkedRows;
+        const rate = totalRows > 0 ? Math.round((checkedRows / totalRows) * 100) : 0;
+
+        document.getElementById('kpiTotal').textContent = totalRows;
+        document.getElementById('kpiChecked').textContent = checkedRows;
+        document.getElementById('kpiPending').textContent = pendingRows;
+        document.getElementById('kpiRate').textContent = rate + '%';
+        document.getElementById('kpiProgress').style.width = rate + '%';
+    }
+
+    // Live search table filter
+    document.getElementById('tableFilterInput').addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase();
+        document.querySelectorAll('#rosterTable tbody tr').forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}

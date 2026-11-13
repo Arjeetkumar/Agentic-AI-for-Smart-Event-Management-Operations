@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event.title }} — EventOps AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .event-hero {
+        background: radial-gradient(circle at 10% 20%, #0f172a 0%, #1e1b4b 100%);
+        color: white;
+        padding: 4rem 0 3rem;
+        border-radius: 0 0 2.5rem 2.5rem;
+        margin-bottom: 2.5rem;
+        position: relative;
+    }
+
+    .countdown-box {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 1rem;
+        padding: 0.75rem 1.25rem;
+        display: inline-flex;
+        gap: 1.5rem;
+        text-align: center;
+    }
+
+    .countdown-val {
+        font-size: 1.8rem;
+        font-weight: 800;
+        line-height: 1;
+        color: #60a5fa;
+    }
+
+    .countdown-lbl {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #cbd5e1;
+    }
+
+    .action-card {
+        background: white;
+        border: none;
+        border-radius: 1.5rem;
+        box-shadow: 0 15px 45px rgba(0, 0, 0, 0.08);
+        padding: 2rem;
+    }
+
+    .speaker-card {
+        border-radius: 1rem;
+        border: 1px solid #e2e8f0;
+        padding: 1.25rem;
+        background: #f8fafc;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .speaker-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+        background: white;
+    }
+
+    .venue-badge-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #f1f5f9;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="event-hero shadow">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge bg-primary px-3 py-2 rounded-pill fw-bold text-uppercase">
+                        {{ event.status or 'Upcoming' }}
+                    </span>
+                    {% if registered %}
+                    <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-bold">
+                        <i class="bi bi-check-circle-fill me-1"></i> You are Registered
+                    </span>
+                    {% endif %}
+                </div>
+
+                <h1 class="display-5 fw-bold mb-3">{{ event.title }}</h1>
+                <p class="fs-5 text-white-50 mb-4" style="max-width: 720px;">
+                    {{ event.description or 'Join leaders, innovators, and peers at this premier event experience.' }}
+                </p>
+
+                <!-- Countdown Timer -->
+                <div class="countdown-box mb-3" id="countdownWrapper">
+                    <div>
+                        <div class="countdown-val" id="cdDays">00</div>
+                        <div class="countdown-lbl">Days</div>
+                    </div>
+                    <div>
+                        <div class="countdown-val" id="cdHours">00</div>
+                        <div class="countdown-lbl">Hours</div>
+                    </div>
+                    <div>
+                        <div class="countdown-val" id="cdMins">00</div>
+                        <div class="countdown-lbl">Mins</div>
+                    </div>
+                    <div>
+                        <div class="countdown-val" id="cdSecs">00</div>
+                        <div class="countdown-lbl">Secs</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Action Box -->
+            <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                <div class="bg-white text-dark p-4 rounded-4 shadow-lg text-start">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted small text-uppercase fw-bold">Registration</span>
+                        <span class="badge bg-info-subtle text-info fw-bold">
+                            {{ attendee_count }} / {{ event.capacity or 'Unlimited' }} Enrolled
+                        </span>
+                    </div>
+
+                    {% if registered and registration %}
+                        <div class="alert alert-success bg-success-subtle border-0 mb-3 py-2 small">
+                            <i class="bi bi-ticket-perforated-fill me-1 text-success"></i>
+                            Tier: <strong>{{ registration.ticket_type or 'Standard' }} Pass</strong>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('view_ticket', registration_id=registration.id) }}" class="btn btn-primary fw-bold py-2">
+                                <i class="bi bi-qr-code me-1"></i> View Digital Pass & QR
+                            </a>
+                            <a href="{{ url_for('event_calendar_ics', event_id=event.id) }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-calendar-plus me-1"></i> Add to Calendar (.ics)
+                            </a>
+                            <a href="{{ url_for('feedback', event_id=event.id) }}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-star me-1"></i> {{ 'Update Feedback' if existing_feedback else 'Submit Feedback' }}
+                            </a>
+                        </div>
+                    {% elif event.status == 'upcoming' %}
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('register_for_event', event_id=event.id) }}" class="btn btn-primary btn-lg fw-bold shadow-sm">
+                                <i class="bi bi-lightning-charge-fill me-1"></i> Register Now
+                            </a>
+                            <a href="{{ url_for('event_calendar_ics', event_id=event.id) }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-calendar-plus me-1"></i> Add to Calendar
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-secondary mb-0">
+                            This event is currently <strong>{{ event.status }}</strong>.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="row g-4">
+        <!-- Main Details Column -->
+        <div class="col-lg-8">
+            <!-- Event Logistics Card -->
+            <div class="action-card mb-4">
+                <h4 class="fw-bold mb-4"><i class="bi bi-info-circle text-primary me-2"></i> Event Schedule & Location</h4>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center p-3 bg-light rounded-3">
+                            <i class="bi bi-calendar-event fs-2 text-primary me-3"></i>
+                            <div>
+                                <div class="text-muted small">Date & Time</div>
+                                <div class="fw-bold fs-6">{{ event.date or 'Date TBD' }} at {{ event.time or 'Time TBD' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center p-3 bg-light rounded-3">
+                            <i class="bi bi-geo-alt fs-2 text-danger me-3"></i>
+                            <div>
+                                <div class="text-muted small">Venue / Hall</div>
+                                <div class="fw-bold fs-6">{{ event.location or 'Global Tech Center' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Capacity Progress Bar -->
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>Attendee Capacity Utilization</span>
+                        {% set cap = event.capacity or 100 %}
+                        {% set pct = (attendee_count / cap * 100)|round|int %}
+                        <span>{{ pct }}% Full</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success" style="width: {{ pct }}%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Speaker Lineup Section -->
+            <div class="action-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold mb-0"><i class="bi bi-mic text-primary me-2"></i> Featured Speakers</h4>
+                    <span class="badge bg-light text-dark border">{{ speakers|length }} Speakers Scheduled</span>
+                </div>
+
+                <div class="row g-3">
+                    {% for spk in speakers %}
+                    <div class="col-md-6">
+                        <div class="speaker-card h-100">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3 fw-bold"
+                                     style="width: 44px; height: 44px; font-size: 1.1rem;">
+                                    {{ spk.name[:1] }}
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-dark">{{ spk.name }}</h6>
+                                    <small class="text-muted">{{ spk.schedule or 'Session Speaker' }}</small>
+                                </div>
+                            </div>
+                            <div class="fw-semibold text-primary small mb-1">{{ spk.session_title or 'Keynote Address' }}</div>
+                            <p class="text-secondary small mb-0">{{ spk.bio or 'Leading practitioner and visionary in modern event tech.' }}</p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-12 text-center py-4 text-muted">
+                        No speakers announced yet for this session.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Column -->
+        <div class="col-lg-4">
+            <!-- AI Event Assistant Card -->
+            <div class="action-card mb-4 bg-primary text-white">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-robot fs-2 me-2"></i>
+                    <div>
+                        <h5 class="fw-bold mb-0">Ask EventOps AI</h5>
+                        <small class="text-white-50">Smart Assistant</small>
+                    </div>
+                </div>
+                <p class="small text-white-50 mb-3">
+                    Have questions about this event, registration tiers, speaker bios, or venue directions? Ask your AI assistant now.
+                </p>
+                <a href="{{ url_for('assistant_page') }}" class="btn btn-light w-100 fw-bold">
+                    <i class="bi bi-chat-dots me-1"></i> Open Assistant
+                </a>
+            </div>
+
+            <!-- Venue Details Card -->
+            {% if venue %}
+            <div class="action-card">
+                <h5 class="fw-bold mb-3"><i class="bi bi-building text-primary me-2"></i> Venue Insights</h5>
+                <div class="mb-2">
+                    <span class="text-muted small">Location Name</span>
+                    <div class="fw-bold">{{ venue.name }}</div>
+                </div>
+                <div class="mb-2">
+                    <span class="text-muted small">Total Capacity</span>
+                    <div class="fw-semibold">{{ venue.capacity }} seats</div>
+                </div>
+                <div>
+                    <span class="text-muted small">Status</span>
+                    <div><span class="badge bg-success-subtle text-success">{{ venue.status|capitalize }}</span></div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    // Live countdown timer calculation
+    (function() {
+        const dateStr = "{{ event.date or '' }}";
+        const timeStr = "{{ event.time or '09:00 AM' }}";
+        if (!dateStr) return;
+
+        let targetDate = new Date(`${dateStr} ${timeStr}`);
+        if (isNaN(targetDate.getTime())) {
+            targetDate = new Date(dateStr);
+        }
+
+        function updateCountdown() {
+            const now = new Date();
+            const diff = targetDate - now;
+
+            if (diff <= 0) {
+                document.getElementById('countdownWrapper').innerHTML = '<span class="text-warning fw-bold"><i class="bi bi-broadcast me-1"></i> Event is happening now or completed</span>';
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+            document.getElementById('cdDays').textContent = String(days).padStart(2, '0');
+            document.getElementById('cdHours').textContent = String(hours).padStart(2, '0');
+            document.getElementById('cdMins').textContent = String(mins).padStart(2, '0');
+            document.getElementById('cdSecs').textContent = String(secs).padStart(2, '0');
+        }
+
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+    })();
+</script>
+{% endblock %}
